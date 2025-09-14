@@ -8,6 +8,43 @@
 			padding: 0;
 			overflow: hidden;
 		}
+		
+		.controls-info {
+			position: absolute;
+			bottom: 15px;
+			left: 10px;
+			background-color: rgba(0, 0, 0, 0.5);
+			color: white;
+			padding: 10px;
+			border-radius: 5px;
+			font-family: Arial, sans-serif;
+			font-size: 14px;
+			z-index: 100;
+			pointer-events: none;
+			display: none;
+		}
+
+		.controls-btn{
+			position: absolute;
+			bottom: 0px;
+			left: 0px;
+			z-index: 101;
+		}
+		.logo{
+			position: absolute;
+			top: 30px;
+			right: 30px;
+			z-index: 101;
+		}
+
+		.copyright{
+			position: absolute;
+			bottom: 30px;
+			left: 50%;
+			transform: translateX(-50%);
+			z-index: 101;
+			color: antiquewhite;
+		}
 	</style>
 </head>
 <body>
@@ -21,7 +58,7 @@
 	}
 	</script>
 	<script type="module">
-		import { WebGLRenderer, PerspectiveCamera, Scene } from 'three';
+		import { WebGLRenderer, PerspectiveCamera, Scene, TOUCH } from 'three';
 		// orbit controls
 		import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 
@@ -43,6 +80,50 @@
 
 		let controls = new OrbitControls(camera, renderer.domElement);
 		controls.enableDamping = true;
+		controls.dampingFactor = 0.05;
+		controls.screenSpacePanning = true;
+		controls.minDistance = 10;
+		controls.maxDistance = 300;
+		controls.rotateSpeed = 0.5;
+		controls.zoomSpeed = 1.2;
+		controls.panSpeed = 0.8;
+		controls.keyPanSpeed = 7.0;
+		// 支持方向键和WASD键
+		controls.keys = {
+			LEFT: 'ArrowLeft',
+			UP: 'ArrowUp', 
+			RIGHT: 'ArrowRight', 
+			BOTTOM: 'ArrowDown'
+		};
+		controls.enableKeys = true;
+		
+		// 添加WASD键控制
+		// 添加WASD键控制
+		window.addEventListener('keydown', function(event) {
+			switch(event.key) {
+				case 'w': case 'W':
+					controls.pan(0, controls.keyPanSpeed);
+					break;
+				case 'a': case 'A':
+					controls.pan(controls.keyPanSpeed, 0);
+					break;
+				case 's': case 'S':
+					controls.pan(0, -controls.keyPanSpeed);
+					break;
+				case 'd': case 'D':
+					controls.pan(-controls.keyPanSpeed, 0);
+					break;
+			}
+		});
+		
+		// 确保移动端触摸支持
+		controls.enableTouchRotate = true;
+		controls.enableTouchZoom = true;
+		controls.enableTouchPan = true;
+		controls.touches = {
+			ONE: TOUCH.ROTATE,
+			TWO: TOUCH.DOLLY_PAN
+		};
 
 		let scene = new Scene();
 
@@ -68,6 +149,37 @@
 		}
 
 		renderer.setAnimationLoop(frameLoop);
+
+		document.getElementById('reset-btn').addEventListener('click', function() {
+			if(document.getElementById("tips").style.display == 'none'){
+				document.getElementById("tips").style.display = 'block';
+			}else{
+				document.getElementById("tips").style.display = 'none';
+			}
+		});
 	</script>
+
+	<div class="controls-btn">
+		<button id="reset-btn">帮助</button>
+	</div>
+
+	<div id="tips" class="controls-info">
+		<p><strong>控制说明:</strong></p>
+		<p>左键拖动: 旋转场景</p>
+		<p>右键拖动: 平移场景</p>
+		<p>滚轮: 缩放场景</p>
+		<p>按住Shift+拖动: 减慢移动速度</p>
+		<p>移动端: 单指旋转, 双指缩放/平移</p>
+	</div>
+
+	<div id="logo" class="logo">
+		<img alt="学校logo" src="data:image/png;base64,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"/>
+	</div>
+
+	<div id="copyright" class="copyright">
+		<p>
+			&copy; 杭科院-物联网技术学院
+		</p>
+	</div>
 </body>
 </html>
